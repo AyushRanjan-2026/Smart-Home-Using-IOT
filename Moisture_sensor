@@ -1,0 +1,38 @@
+#include <WiFi.h>
+
+// Define pin connections
+const int soilMoisturePin = 34;  // Analog pin connected to the soil moisture sensor
+const int relayPin = 13;         // Digital pin connected to the relay module
+
+// Define thresholds
+const int moistureThreshold = 500;  // Set the threshold value for soil moisture
+
+void setup() {
+  Serial.begin(115200);
+  
+  // Initialize pins
+  pinMode(soilMoisturePin, INPUT);
+  pinMode(relayPin,OUTPUT);
+  // digitalWrite(relayPin, LOW);  // Ensure the pump is off initially
+
+  Serial.println("Soil Moisture Sensor with Pump Control");
+}
+
+void loop() {
+
+  Read the soil moisture value
+  int soilMoistureValue = analogRead(soilMoisturePin);
+  Serial.print("Soil Moisture Value: ");
+  Serial.println(soilMoistureValue);
+
+  // Check if the soil moisture is below the threshold
+  if (soilMoistureValue < moistureThreshold) {
+    Serial.println("Soil is dry. Turning on the pump.");
+    digitalWrite(relayPin, HIGH);  // Turn on the pump
+  } else {
+    Serial.println("Soil is wet enough. Turning off the pump.");
+    digitalWrite(relayPin, HIGH);  // Turn off the pump
+  }
+
+  delay(2000);  // Wait for 2 seconds before the next reading
+}
