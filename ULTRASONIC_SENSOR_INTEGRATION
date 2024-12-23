@@ -1,0 +1,72 @@
+#define BLYNK_TEMPLATE_ID "TMPL6Bv4K8KDp"
+#define BLYNK_TEMPLATE_NAME "water tank"
+#define BLYNK_AUTH_TOKEN "00InV81eYnRYO9E2A8xzy9AEEUWIq1Ep"
+
+#include <ESP32Servo.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+
+Servo riya;
+#define SERVO_PIN 33
+// Ultrasonic Sensor
+#define TRIG_PIN 5
+#define ECHO_PIN 18
+
+// Blynk settings
+#define BLYNK_PRINT Serial
+
+// WiFi credentials
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "realme C30";     // Type your WiFi name
+char pass[] = "86d20877";   // Type your WiFi password
+
+BlynkTimer timer;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println(F("Starting the setup"));
+  
+  Blynk.begin(auth, ssid, pass);
+  riya.attach(SERVO_PIN);
+  
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  
+  timer.setInterval(1000L, sendSensorData); // Call sendSensorData every second
+}
+
+void sendSensorData() {
+  long duration, distance;
+  
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  
+  duration = pulseIn(ECHO_PIN, HIGH);
+  // Calculate distance
+  distance = (duration / 2) * 0.0343; // Convert duration to distance in centimeters
+  
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  
+  Blynk.virtualWrite(V4, distance);
+  if (distance >= 0 && distance <= 2) {
+    riya.write(0);
+  } else {
+   for(int i=0;i<180;i++){
+      riya.write(i);
+    }
+    for(int i=180;i>=0;i--){
+      riya.write(i);
+    }
+    delay(10);
+  }
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}
