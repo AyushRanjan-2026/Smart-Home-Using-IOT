@@ -1,0 +1,150 @@
+// DHT Sensor
+#define DHTPIN 32        // Pin connected to the DHT sensor (G4 on ESP32)
+#define DHTTYPE DHT11    // DHT 11 sensor type
+#include <DHT.h>
+
+#define RED_PIN 25
+#define GREEN_PIN 26
+#define BLUE_PIN 27
+
+// Ultrasonic Sensor
+#define TRIG_PIN 5
+#define ECHO_PIN 18
+
+// LED Pin
+#define LED_PIN 2        // Pin connected to the LED
+
+// Blynk settings
+#define BLYNK_PRINT Serial
+#define BLYNK_TEMPLATE_ID "TMPL6WFbRk2e7"
+#define BLYNK_TEMPLATE_NAME "ryshtty"
+#define BLYNK_AUTH_TOKEN "HeC9CmkeSkXz0OlCka2ehgS6Mt4CPs_n"
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+
+// WiFi credentials
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "Airtel_nish_3606";     // Type your WiFi name
+char pass[] = "air19634";   // Type your WiFi password
+DHT dht(DHTPIN, DHTTYPE);
+BlynkTimer timer;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println(F("Starting the setup"));
+  
+  Blynk.begin(auth, ssid, pass);
+  dht.begin();
+  
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW); // Ensure the LED is off initially
+  
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  Serial.begin(115200);
+
+  // Set the RGB LED pins as outputs
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(BLUE_PIN, OUTPUT);
+
+  // Initialize the RGB LED to be off
+  analogWrite(RED_PIN, 0);
+  analogWrite(GREEN_PIN, 0);
+  analogWrite(BLUE_PIN, 0);
+
+
+
+ // timer.setInterval(1000L, sendSensorData);
+  //timer.setInterval(2000L, readDHTSensor);
+}
+
+void sendSensorData() {
+  long duration, distance;
+  
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  
+  duration = pulseIn(ECHO_PIN, HIGH);
+  // Calculate distance
+  distance = (duration / 2) * 0.0343; // Convert duration to distance in centimeters
+  
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  
+  Blynk.virtualWrite(V4, distance);
+  if(distance>=0 && distance<=1){
+    setColor(0, 255, 0); // Green
+  delay(100);
+  }
+  else if(distance>=1 && distance<=4){
+    setColor(0, 0, 255); // Blue
+  delay(100);
+  }
+  else if(distance){
+    setColor(255, 0, 0); // Red
+    delay(100);
+  }
+
+}
+
+void setColor(uint8_t red, uint8_t green, uint8_t blue) {
+  // Use analogWrite to set the color
+  analogWrite(RED_PIN, red);
+  analogWrite(GREEN_PIN, green);
+  analogWrite(BLUE_PIN, blue);
+}
+
+/*void readDHTSensor() {
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
+
+  if (isnan(humidity) || isnan(temperature)) {
+    Serial.println(F("Failed to read from the DHT sensor!"));
+    return;
+  }
+
+  float heatIndex = dht.computeHeatIndex(temperature, humidity, false);
+
+  Serial.print(F("Humidity: "));
+  Serial.print(humidity);
+  Serial.print(F("%  Temperature: "));
+  Serial.print(temperature);
+  Serial.print(F("°C  Heat index: "));
+  Serial.print(heatIndex);
+  Serial.println(F("°C"));
+
+  Blynk.virtualWrite(V1, humidity);
+  Blynk.virtualWrite(V0, temperature);
+  
+  if (temperature > 25.00) {
+    Blynk.logEvent("tempalert", "Temperature is high");
+  }
+}*/
+
+void loop() {
+  Blynk.run();
+  timer.run();
+   sendSensorData();
+   delay(1000);
+}
+
+BLYNK_WRITE(V2) {
+  int buttonState = param.asInt();
+  
+  Serial.print(F("Button state: "));
+  Serial.println(buttonState);
+
+  if (buttonState == 1) {
+    Serial.println(F("Button pressed"));
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_PIN, LOW);
+    Serial.println(F("Button released"));
+  }
+}
