@@ -1,4 +1,4 @@
-Description
+
 This project is a multi-functional Internet of Things (IoT) solution built on the ESP32 microcontroller platform. It integrates various sensors to collect real-time environmental and physical data, which is then sent to the Blynk cloud application for remote monitoring and control. The system is designed to automate common tasks, such as managing water levels and controlling a smart garden, demonstrating practical applications of embedded systems and cloud integration.
 
 Features
